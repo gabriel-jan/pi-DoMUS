@@ -144,13 +144,13 @@ subsection piDoMUS
   ##
   set Adaptive refinement                            = false
   set Enable finer preconditioner                    = false
-  set Initial global refinement                      = 3
+  set Initial global refinement                      = 6
   set Jacobian solver tolerance                      = 1e-10
   set Max iterations                                 = 10000
   set Max iterations finer prec.                     = 0
   set Max tmp vectors                                = 30
   set Max tmp vectors for finer system               = 50
-  set Number of cycles                               = 2
+  set Number of cycles                               = 4
   set Overwrite Newton's iterations                  = true
   set Print some useful informations about processes = true
   set Refine mesh during transient                   = false

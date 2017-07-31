@@ -190,14 +190,14 @@ def main(args=None):
             
             # create and run batch file
             pbs = open(name+"-test/batch_"+ name + ".pbs",'a+')
-            pbs.write('#PBS -l nodes=2:ppn=10\n')
+            pbs.write('#PBS -l nodes=1:ppn=12\n')
             pbs.write('#PBS -l walltime= 6:00:00\n')
             pbs.write('#PBS -q regular\n')
             pbs.write('#PBS -m abe\n')
             pbs.write('#PBS -N '+name+'-test\n')
             pbs.write('#PBS -k oe\n\n')
             pbs.write('cd /home/jgabriel/programs/sources/pi-DoMUS/examples/heart/testing/'+name+'-test\n\n')
-            pbs.write('../../build/heart --prm=ALE_"+ name +".prm --dealii >/dev/null')
+            pbs.write("mpirun -np 12 ../../build/heart --prm=ALE_"+ name +".prm >/dev/null")
             pbs.close()
             #os.system("qsub batch_"+ name +".pbs")
 
