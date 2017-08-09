@@ -29,11 +29,8 @@
 void print_status(  std::string name,
                     std::string prm_file,
                     int dim,
-                    // int spacedim,
                     int n_threads,
-                    const MPI_Comm &comm,
-                    bool check_prm);
-
+                    const MPI_Comm &comm);
 
 int main (int argc, char *argv[])
 {
@@ -51,17 +48,10 @@ int main (int argc, char *argv[])
   );
 
   std::string pde_name="ALE";
-  //My_CLP.setOption("pde", &pde_name, "name of the PDE (stokes, NS for navier stokes, or ALE for ALE navier stokes)");
 
   bool trilinos = true;
   My_CLP.setOption("trilinos","dealii", &trilinos, "select the vector type to use");
-
-  bool dynamic = true;
-  My_CLP.setOption("ut","static", &dynamic, "wait for a key press before starting the run");
-
-  // int spacedim = 2;
-  // My_CLP.setOption("spacedim", &spacedim, "dimensione of the whole space");
-
+  
   int dim = 2;
   My_CLP.setOption("dim", &dim, "dimension of the problem");
 
@@ -71,10 +61,6 @@ int main (int argc, char *argv[])
   std::string prm_file=pde_name+".prm";
   My_CLP.setOption("prm", &prm_file, "name of the parameter file");
 
-  bool check_prm = false;
-  My_CLP.setOption("check","no-check", &check_prm, "wait for a key press before starting the run");
-
-  // My_CLP.recogniseAllOptions(true);
   My_CLP.throwExceptions(false);
 
   Teuchos::CommandLineProcessor::EParseCommandLineReturn
@@ -100,24 +86,15 @@ int main (int argc, char *argv[])
   Teuchos::oblackholestream blackhole;
   std::ostream &out = ( Utilities::MPI::this_mpi_process(comm) == 0 ? std::cout : blackhole );
 
-  std::string string_dynamic="";
-  if (dynamic)
-    string_dynamic="Dynamic";
-
-  std::string string_pde_name="ALE Navier Stokes";
-
   My_CLP.printHelpMessage(argv[0], out);
 
-  // deallog.depth_console (0);
   try
     {
-      print_status(   string_dynamic+" "+string_pde_name+" Equations",
+      print_status(   "Dynamic ALE Navier Stokes Equations",
                       prm_file,
                       dim,
-                      // spacedim,
                       n_threads,
-                      comm,
-                      check_prm);
+                      comm);
       if (dim == 2)
       {
         if (trilinos)
@@ -174,13 +151,10 @@ int main (int argc, char *argv[])
 void print_status(  std::string name,
                     std::string prm_file,
                     int dim,
-                    // int spacedim,
                     int n_threads,
-                    const MPI_Comm &comm,
-                    bool check_prm)
+                    const MPI_Comm &comm)
 {
   int numprocs  = Utilities::MPI::n_mpi_processes(comm);
-  //  int myid      = Utilities::MPI::this_mpi_process(comm);
 
   Teuchos::oblackholestream blackhole;
   std::ostream &out = ( Utilities::MPI::this_mpi_process(comm) == 0 ? std::cout : blackhole );
@@ -199,20 +173,9 @@ void print_status(  std::string name,
       << std::endl
       << " proc.tot:  "  << numprocs
       << std::endl
-      // << " spacedim:  " << spacedim
-      // << std::endl
       << "      dim:  " << dim
-      // << std::endl
-      // << "    codim:  " << spacedim-dim
-      << std::endl;
-  if (check_prm)
-    {
-      out<< "-------------------------------------------------------------"
-         << std::endl;
-      out << "Press [Enter] key to start...";
-      if (std::cin.get() == '\n') {};
-    }
-  out << "============================================================="
+      << std::endl
+      << "============================================================="
       <<std::endl<<std::endl;
 
 }
