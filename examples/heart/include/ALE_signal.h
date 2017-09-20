@@ -56,16 +56,41 @@ public:
   virtual void connect_to_signals() const {
     auto &signals = this->get_signals();
     disable_heart = this->get_disable_heart_bool();
-
     if (!disable_heart) {
       signals.postprocess_newly_created_triangulation.connect(
           [&, this](Triangulation<dim, spacedim> *tria) {
+            // manual coloring
+            for(auto cell : tria->active_cell_iterators())
+            {
+              for(unsigned int f=0; f<GeometryInfo<dim>::faces_per_cell; ++f)
+              {
+                if(cell->face(f)->at_boundary())
+                {
+                  if(cell->face(f)->center()[0] <= -1.3857)
+                  {
+                    cell->face(f)->set_boundary_id(0);
+                  }
+                  if(cell->face(f)->center()[0] >= 1.3857)
+                  {
+                    cell->face(f)->set_boundary_id(1);
+                  }
+                  if(cell->face(f)->center()[1] <= -3.0014)
+                  {
+                    cell->face(f)->set_boundary_id(2);
+                  }
+                  if(cell->face(f)->center()[1] >= 3.0014)
+                  {
+                    cell->face(f)->set_boundary_id(3);
+                  }
+                }
+              }
+            }
+            // shifting the geometry to the right position
             int index = (dim == 2) ? 1 : 0;
             Tensor<1, dim> shift_vec;
             shift_vec[index] = -1.318;
             GridTools::shift(shift_vec, *tria);
           });
-
       signals.update_constraint_matrices.connect(
           [&, this](std::vector<std::shared_ptr<dealii::ConstraintMatrix>>
                         &constraints,
@@ -141,7 +166,6 @@ public:
                       dof, 2, heart_boundary_values, *constraints[0],
                       displacement_mask);
             }
-
             int n_faces = (dim == 2) ? 3 : 2;
 
             if (timestep < 0.005) // 0.005 is the time of one heart interval
@@ -169,7 +193,8 @@ public:
               }
             }
           });
-    } else {
+    } 
+    else {
       // Make sure that velocity boundary conditions are applied on the Eulerian
       // domain.
       // This needs to be differnt w.r.t. the displacement variables, where

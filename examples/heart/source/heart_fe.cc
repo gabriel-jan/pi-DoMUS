@@ -30,7 +30,7 @@ Heart<dim, spacedim>::Heart()
 
 template <int dim, int spacedim>
 Heart<dim, spacedim>::Heart(bool side)
-    : fe(FE_Q<dim>(side ? 4 : 2), spacedim)
+    : fe(FE_Q<dim>(4), spacedim)
     , dof_handler(triangulation)
     , solution(100)
     , side(side)
@@ -76,7 +76,7 @@ void Heart<dim, spacedim>::reinit_data()
   for (int line = 0; line < 100; ++line) {
     std::getline(in, coord);
 
-    // split into 3675 (side) or 363 (bottom) pieces
+    // split into 3675 (side) or 507 (bottom) pieces
     std::vector<std::string> splitted;
     boost::split(splitted, coord, boost::is_any_of(";"));
 
@@ -120,8 +120,8 @@ template <int dim, int spacedim>
 void Heart<dim, spacedim>::run_bottom()
 {
   std::vector<unsigned int> subdivisions(2);
-  subdivisions[0] = 10 / fe.degree;
-  subdivisions[1] = 10 / fe.degree;
+  subdivisions[0] = 12 / fe.degree;
+  subdivisions[1] = 12 / fe.degree;
   const Point<dim> p1(-1.3858, -1.3858);
   const Point<dim> p2(1.3858, 1.3858);
 
