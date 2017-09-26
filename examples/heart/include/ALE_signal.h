@@ -565,7 +565,7 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
               // solve linear elasticity problem
               // + scalar_product(grad_d, grad_d_test)
               + 1.0 * scalar_product(grad_d, grad_d_test)
-              + 10 * (div_d * div_d_test)
+              + 1.0 * (div_d * div_d_test)
 
           ) * JxW[quad];
     }
