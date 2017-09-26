@@ -461,6 +461,7 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
   auto &Fs =
       fe_cache.get_deformation_gradients("solution", "Fd", displacement, et);
   auto &ds_dot = fe_cache.get_values("solution_dot", "d_dot", displacement, et);
+  auto &div_ds = fe_cache.get_divergences( "solution", "div_d", displacement, et);
 
   // explicit deformation gradients:
   auto &Fs_old = fe_cache.get_deformation_gradients("explicit_solution", "Fd",
@@ -469,8 +470,7 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
   // velocity:
   auto &us = fe_cache.get_values("solution", "u", velocity, et);
   auto &grad_us = fe_cache.get_gradients("solution", "grad_u", velocity, et);
-  // auto &div_us = fe_cache.get_divergences( "solution", "div_u", velocity,
-  // et);
+  
   auto &sym_grad_us =
       fe_cache.get_symmetric_gradients("solution", "u", velocity, et);
   auto &us_dot = fe_cache.get_values("solution_dot", "u_dot", velocity, et);
@@ -490,7 +490,6 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
 
   for (unsigned int quad = 0; quad < n_quad_points; ++quad) {
     // velocity:
-    // const ResidualType &div_u = div_us[quad];
     const Tensor<1, dim, ResidualType> &u_dot = us_dot[quad];
     const Tensor<2, dim, ResidualType> &grad_u = grad_us[quad];
     const Tensor<2, dim, ResidualType> &sym_grad_u = sym_grad_us[quad];
@@ -498,6 +497,7 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
     // displacement
     const Tensor<1, dim, ResidualType> &d_dot = ds_dot[quad];
     const Tensor<2, dim, ResidualType> &grad_d = grad_ds[quad];
+    const ResidualType &div_d = div_ds[quad];
 
     // deformation gradient, assigned differently due to different
     // ResidualTypes
@@ -538,10 +538,10 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
       // velocity:
       auto u_test = fev[velocity].value(i, quad);
       auto grad_u_test = fev[velocity].gradient(i, quad);
-      // auto div_u_test = fev[velocity].divergence(i,quad);
 
       // displacement:
       auto grad_d_test = fev[displacement].gradient(i, quad);
+      auto div_d_test = fev[displacement].divergence(i, quad);
 
       // pressure:
       auto p_test = fev[pressure].value(i, quad);
@@ -562,9 +562,12 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
               // divergence free constriant
               - trace(grad_u * F_inv) * J_ale * p_test
 
-              // Impose harmony of d and u=d_dot
-              + scalar_product(grad_d, grad_d_test)) *
-          JxW[quad];
+              // solve linear elasticity problem
+              // + scalar_product(grad_d, grad_d_test)
+              + 1.0 * scalar_product(grad_d, grad_d_test)
+              + 10 * (div_d * div_d_test)
+
+          ) * JxW[quad];
     }
   }
 
