@@ -17,50 +17,36 @@ def main(args=None):
 #   -pre_v
 #   -output
 
-    testnames = ["z",       #trivial solution
-                 "p",       #patch
-                 "pt",      #patch with time
-                 "rp",      #rot patch
+    testnames = ["rp",      #rot patch
                  "rpt",     #rot patch with time
                  "rs",      #rot sine
                  "rst",     #rot sine with time
                  "sc",      #sine cosine
                  "sct"]     #sine cosine with time
-    pre_d = ["0",
-             "-0.2*((y**2)/2-y)", 
-             "-0.2*t*((y**2)/2-y)", 
-             "-0.2*y**2*(y/3 - 1/2)", 
+    pre_d = ["-0.2*y**2*(y/3 - 1/2)", 
              "-0.2*t*y**2*(y/3 - 1/2)",
              "0.2*(1/pi)*cos(pi*y)", 
              "0.2*sin(2*pi*t)*(1/pi)*cos(pi*y)",
              "0.06*(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
              "0.06*(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"]
-    pre_v = ["0",
-             "-((y**2)/2-y)", 
-             "-t*((y**2)/2-y)", 
-             "-y**2*(y/3 - 1/2)", 
+    pre_v = ["-y**2*(y/3 - 1/2)", 
              "-t*y**2*(y/3 - 1/2)",
              "(1/pi)*cos(pi*y)", 
              "sin(2*pi*t)*(1/pi)*cos(pi*y)",
              "(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
              "(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"] 
-    output = ["zero",
-              "patch",
-              "time_dep_patch",
-              "rotating_patch",
+    output = ["rotating_patch",
               "time_dep_rotating_patch",
               "rotating_sine",
               "time_dep_rotating_sine",
               "sine_cosine",
               "time_dep_sine_cosine"]      
-
-    # tests to test the test script
    
     press = "0"
     
     inv = 0
 
-    # mute output
+    # mute output for cluster usage 
     mute = 1
 
     #input handling
@@ -105,9 +91,12 @@ def main(args=None):
             if args[2] == "inv":
                 inv = 1
 
+    # set up symbolic variables to be derived later
     x, y, z, t = var('x,y,z,t')
     local_dict = {"x": x, "y": y, "z": z, "t": t}
     inv_dict = {"x": y, "y": x, "z": z, "t": t}
+
+    # loop over all test cases
     for k in range(start_d,end_d):
         for i in range(start_v,end_v):
             if inv:
@@ -191,7 +180,7 @@ def main(args=None):
             # create and run batch file
             pbs = open(name+"-test/batch_"+ name + ".pbs",'a+')
             pbs.write('#PBS -l nodes=1:ppn=12\n')
-            pbs.write('#PBS -l walltime= 6:00:00\n')
+            pbs.write('#PBS -l walltime= 03:59:00\n')
             pbs.write('#PBS -q regular\n')
             pbs.write('#PBS -m abe\n')
             pbs.write('#PBS -N '+name+'-test\n')
@@ -199,7 +188,7 @@ def main(args=None):
             pbs.write('cd /home/jgabriel/programs/sources/pi-DoMUS/examples/heart/testing/'+name+'-test\n\n')
             pbs.write("mpirun -np 12 ../../build/heart --prm=ALE_"+ name +".prm >/dev/null")
             pbs.close()
-            #os.system("qsub batch_"+ name +".pbs")
+            os.system("qsub batch_"+ name +".pbs")
 
 if __name__ == "__main__":
     main()
