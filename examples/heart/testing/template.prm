@@ -101,7 +101,7 @@ subsection IMEX Parameters
   set Number of elements in backtracking sequence  = 5
   set Print useful informations                    = true
   set Relative error tolerance                     = 1e-9
-  set Step size                                    = .003125
+  set Step size                                    = .03125
   set Update continuously Jacobian                 = true
   set Use the KINSOL solver                        = true
 end
@@ -150,7 +150,7 @@ subsection piDoMUS
   set Max iterations finer prec.                     = 0
   set Max tmp vectors                                = 30
   set Max tmp vectors for finer system               = 50
-  set Number of cycles                               = 4
+  set Number of cycles                               = 3
   set Overwrite Newton's iterations                  = true
   set Print some useful informations about processes = true
   set Refine mesh during transient                   = false

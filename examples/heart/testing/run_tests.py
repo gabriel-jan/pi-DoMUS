@@ -21,7 +21,7 @@ def main(args=None):
 # - running in parallel
 # - fix time dependence problems
 
-    testnames = ["z",       #trivial solution
+    testnames = [#"z",       #trivial solution
                  "p",       #patch
                  "pt",      #patch with time
                  "rp",      #rot patch
@@ -30,7 +30,7 @@ def main(args=None):
                  "rst",     #rot sine with time
                  "sc",      #sine cosine
                  "sct"]     #sine cosine with time
-    pre_d = ["0",
+    pre_d = [#"0",
              "-0.2*((y**2)/2-y)", 
              "-0.2*t*((y**2)/2-y)", 
              "-0.2*y**2*(y/3 - 1/2)", 
@@ -39,16 +39,16 @@ def main(args=None):
              "0.2*sin(2*pi*t)*(1/pi)*cos(pi*y)",
              "0.06*(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
              "0.06*(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"]
-    pre_v = ["0",
-             "-((y**2)/2-y)", 
-             "-t*((y**2)/2-y)", 
-             "-y**2*(y/3 - 1/2)", 
-             "-t*y**2*(y/3 - 1/2)",
-             "(1/pi)*cos(pi*y)", 
-             "sin(2*pi*t)*(1/pi)*cos(pi*y)",
-             "(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
-             "(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"] 
-    output = ["zero",
+    pre_v = [#"0",
+             "-0.2*((y**2)/2-y)", 
+             "-0.2*t*((y**2)/2-y)", 
+             "-0.2*y**2*(y/3 - 1/2)", 
+             "-0.2*t*y**2*(y/3 - 1/2)",
+             "0.2*(1/pi)*cos(pi*y)", 
+             "0.2*sin(2*pi*t)*(1/pi)*cos(pi*y)",
+             "0.06*(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
+             "0.06*(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"]
+    output = [#"zero",
               "patch",
               "time_dep_patch",
               "rotating_patch",
