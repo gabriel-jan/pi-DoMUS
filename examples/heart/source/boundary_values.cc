@@ -237,6 +237,7 @@ void BoundaryValues<dim>::get_values_dt(const Point<dim> &p,
   // calculate & scale delta_v
   delta_v = v1;
   delta_v -= v0;
+  delta_v /= 200; // this is due to the CGS unit system
   delta_v *= substep;
 
   v0 += delta_v; // delta_u = delta_u*substep

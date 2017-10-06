@@ -6,7 +6,7 @@ subsection ALE Navier Stokes Interface
   set Blocking of the finite element   = d,d,u,u,p
   set Finite element space             = FESystem[FE_Q(2)^d-FE_Q(2)^d-FE_Q(1)]
   set Invert Mp using inverse operator = false
-  set nu [Pa s]                        = 1
+  set nu [Pa s]                        = 0.033
   set rho [kg m^-d]                    = 1.06
 end
 subsection AMG for d
