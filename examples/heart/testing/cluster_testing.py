@@ -167,7 +167,7 @@ def main(args=None):
             shutil.copy2("./template.prm", name+"-test/ALE_"+ name + ".prm" )
 
             #append to prm file
-            prm = open(name+"-test/ALE_"+ name + ".prm",'w')
+            prm = open(name+"-test/ALE_"+ name + ".prm",'a+')
             prm.write(v_str.replace("**", "^"))
             prm.close()
             if platform == "darwin":
