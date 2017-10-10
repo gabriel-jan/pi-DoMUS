@@ -179,14 +179,14 @@ def main(args=None):
             
             # create and run batch file
             pbs = open(name+"-test/batch_"+ name + ".pbs",'a+')
-            pbs.write('#PBS -l nodes=1:ppn=12\n')
-            pbs.write('#PBS -l walltime= 03:59:00\n')
+            pbs.write('#PBS -l nodes=1:ppn=10\n')
+            pbs.write('#PBS -l walltime= 04:59:00\n')
             pbs.write('#PBS -q regular\n')
             pbs.write('#PBS -N '+name+'-test\n')
-            pbs.write('#PBS -k oe\n\n')
+            #pbs.write('#PBS -k oe\n\n')
             pbs.write('source /home/mathlab/dealii-trilinos-p4est/set_up_dealii.sh\n\n')
-            pbs.write('cd /scratch/heltai/jan/pi-DoMUS/examples/heart/testing/'+name+'-test\n\n')
-            pbs.write("mpirun -np 12 ../../build/heart --prm=ALE_"+ name +".prm >/dev/null")
+            pbs.write('cd /scratch/heltai/jan/pi-DoMUS/examples/heart/build\n\n')
+            pbs.write("mpirun -np 10 heart --prm=/../testing/"+name+"-test/ALE_"+ name +".prm")
             pbs.close()
             os.system("qsub batch_"+ name +".pbs")
 

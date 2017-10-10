@@ -124,7 +124,7 @@ subsection Output Parameters
   set Incremental run prefix         = 
   set Output format                  = vtu
   set Output partitioning            = false
-  set Problem base name              = xxx
+  set Problem base name              = /../testing/xxx-test/xxx
   set Solution names                 = u
   set Subdivisions                   = 1
 end
