@@ -168,13 +168,19 @@ public:
             }
             int n_faces = (dim == 2) ? 3 : 2;
 
-            if (timestep < 0.005) // 0.005 is the time of one heart interval
+            if (timestep < 0.000001)
             {
               // time derivatives of dirichlet BC for d
               for (int i = 0; i < n_faces; ++i) {
                 VectorTools::interpolate_boundary_values(
                     dof, i, ZeroFunction<dim>(2 * dim + 1), constraints_dot,
                     displacement_mask);
+              }
+              // time derivatives of dirichlet BC for u
+              for (int i = 0; i < n_faces; ++i) {
+                VectorTools::interpolate_boundary_values(
+                    dof, i, ZeroFunction<dim>(2 * dim + 1), *constraints[0],
+                    velocity_mask);
               }
             } else {
               // time derivatives of dirichlet BC for d
