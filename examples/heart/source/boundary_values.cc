@@ -241,8 +241,8 @@ void BoundaryValues<dim>::get_values_dt(const Point<dim> &p,
 
   v0 += delta_v; // delta_u = delta_u*substep
 
-  // scaling to get CGS unit system
-  v0 /= 200;
+  // (wrong!) scaling to get CGS unit system
+  // v0 /= 200;
 
   for (int i = 0; i < 2 * dim; ++i) {
     values(i) = v0(i % dim);
