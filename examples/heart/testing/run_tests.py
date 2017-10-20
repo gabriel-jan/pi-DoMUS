@@ -183,10 +183,10 @@ def main(args=None):
             #os.system("mpirun -np 4 ../build/heart --prm=ALE_"+ name +".prm")
             if mute:
                 #os.system("../build/heart --prm=ALE_"+ name +".prm --dealii >/dev/null")
-                os.system("mpirun -np 4 ../build/heart --prm=ALE_"+ name +".prm >/dev/null")
+                os.system("mpirun -np 8 ../build/heart --prm=ALE_"+ name +".prm >/dev/null")
             else:
-                #os.system("../build/heart --prm=ALE_"+ name +".prm --dealii")
-                os.system("mpirun -np 4 ../build/heart --prm=ALE_"+ name +".prm")
+                os.system("../build/heart --prm=ALE_"+ name +".prm --dealii")
+                #os.system("mpirun -np 8 ../build/heart --prm=ALE_"+ name +".prm")
             os.system("mv error.txt errorfiles/error-"+str(k)+"-"+str(i)+".txt")
     files = glob.glob( 'errorfiles/error*' )
     files.sort()
