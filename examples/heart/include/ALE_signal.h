@@ -78,7 +78,7 @@ public:
                   {
                     cell->face(f)->set_boundary_id(2);
                   }
-                  if(cell->face(f)->center()[1] >= 3.0014)
+                  if(cell->face(f)->center()[1] >= 5.0014)
                   {
                     cell->face(f)->set_boundary_id(3);
                   }

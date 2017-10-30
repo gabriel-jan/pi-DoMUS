@@ -13,12 +13,32 @@ void BoundaryValues<dim>::vector_value(const Point<dim> &p,
                                        Vector<double> &values) const
 {
   if (derivative)
-    get_values_dt(p, values);
+      if (p[1]<=3.0014-1.318)
+      {
+        get_values_dt(p, values);
+      }
+      else
+      {
+        for (int i = 0; i < dim; ++i)
+        {
+          values[i]=0;
+        }
+      }
   else {
     if (color == 2) {
       get_heartdelta(p, values, heartstep);
     } else
-      get_values(p, values);
+      if (p[1]<=3.0014-1.318)
+      {
+        get_values(p, values);
+      }
+      else
+      {
+        for (int i = 0; i < dim; ++i)
+        {
+          values[i]=0;
+        }
+      }
   }
 }
 

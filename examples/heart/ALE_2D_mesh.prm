@@ -6,7 +6,7 @@ subsection ALE Navier Stokes Interface
   set Blocking of the finite element   = d,d,u,u,p
   set Finite element space             = FESystem[FE_Q(2)^d-FE_Q(2)^d-FE_Q(1)]
   set Invert Mp using inverse operator = false
-  set nu [Pa s]                        = 0.033
+  set nu [Pa s]                        = 0.04
   set rho [kg m^-d]                    = 1.06
 end
 subsection AMG for d
@@ -43,7 +43,7 @@ subsection Dirichlet boundary conditions
 end
 subsection Domain
   set Grid to generate              = file
-  set Input grid file name          = rect.msh
+  set Input grid file name          = large_rect.msh
 end
 subsection Error Tables
   set Compute error            = false
@@ -85,7 +85,7 @@ subsection IMEX Parameters
   set Number of elements in backtracking sequence  = 5
   set Print useful informations                    = true
   set Relative error tolerance                     = 1e-10
-  set Step size                                    = 1e-3
+  set Step size                                    = 1e-4
   set Update continuously Jacobian                 = true
   set Use the KINSOL solver                        = true
 end
@@ -158,7 +158,7 @@ subsection IDA Solver Parameters
   set Initial time                                  = 0
   set Maximum number of nonlinear iterations        = 10
   set Maximum order of BDF                          = 5
-  set Min step size                                 = 5e-5
+  set Min step size                                 = 5e-6
   set Relative error tolerance                      = 1e-4
   set Seconds between each output                   = 0.01
   set Show output of time steps                     = true
@@ -173,7 +173,7 @@ subsection piDoMUS
   ##
   set Adaptive refinement                            = false
   set Enable finer preconditioner                    = false
-  set Initial global refinement                      = 2
+  set Initial global refinement                      = 3
   set Jacobian solver tolerance                      = 1e-10
   set Max iterations                                 = 1000000
   set Max iterations finer prec.                     = 0
