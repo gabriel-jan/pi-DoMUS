@@ -111,7 +111,7 @@ void BoundaryValues<dim>::get_heartdelta(const Point<dim> point,
   if (dim == 2) {
     rotation_offset = -PI / 4;
     // rotate the 2D slice by this angle
-    rotate_slice = -PI / 4;
+    rotate_slice = PI / 4;
     p = artificial_p;
   }
 

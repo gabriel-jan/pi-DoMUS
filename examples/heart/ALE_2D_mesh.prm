@@ -6,7 +6,7 @@ subsection ALE Navier Stokes Interface
   set Blocking of the finite element   = d,d,u,u,p
   set Finite element space             = FESystem[FE_Q(2)^d-FE_Q(2)^d-FE_Q(1)]
   set Invert Mp using inverse operator = false
-  set nu [Pa s]                        = 0.04
+  set nu [Pa s]                        = 0.033
   set rho [kg m^-d]                    = 1.06
 end
 subsection AMG for d
@@ -43,7 +43,7 @@ subsection Dirichlet boundary conditions
 end
 subsection Domain
   set Grid to generate              = file
-  set Input grid file name          = large_rect.msh
+  set Input grid file name          = finer_rect.msh
 end
 subsection Error Tables
   set Compute error            = false
@@ -77,7 +77,7 @@ subsection IMEX Parameters
   set Absolute error tolerance                     = 1e-10
   set Final time                                   = 0.495
   set Initial time                                 = 0.0
-  set Intervals between outputs                    = 1
+  set Intervals between outputs                    = 10
   set Maximum number of inner nonlinear iterations = 15
   set Maximum number of outer nonlinear iterations = 20
   set Method used                                  = fixed_alpha
@@ -173,7 +173,7 @@ subsection piDoMUS
   ##
   set Adaptive refinement                            = false
   set Enable finer preconditioner                    = false
-  set Initial global refinement                      = 3
+  set Initial global refinement                      = 2
   set Jacobian solver tolerance                      = 1e-10
   set Max iterations                                 = 1000000
   set Max iterations finer prec.                     = 0
