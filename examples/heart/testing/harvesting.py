@@ -9,6 +9,9 @@ from sys import platform
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
+
+# collecting convergence tables and merging them into one big table, including their testnames
+
 def main(args=None):
     """The main routine."""
 
@@ -28,6 +31,7 @@ def main(args=None):
     prm = open("results.txt",'w')
     prm.write("Convergence in space: Results\n\n")
     prm.close()
+    
     # loop over all test cases
     for k in range(0,len(testnames)):
         for i in range(0,len(testnames)):

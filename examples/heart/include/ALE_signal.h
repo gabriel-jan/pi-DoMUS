@@ -3,7 +3,7 @@
  */
 
 /**
- * This interface solves ALE Navier Stokes Equation:
+ * This interface solves the ALE Navier Stokes problem:
  *
  */
 
@@ -53,10 +53,14 @@ public:
       LinearOperator<LATrilinos::VectorType> &,
       LinearOperator<LATrilinos::VectorType> &) const;
 
+  // overwriting empty placeholder signal functions 
   virtual void connect_to_signals() const {
     auto &signals = this->get_signals();
     disable_heart = this->get_disable_heart_bool();
     if (!disable_heart) {
+      // The input mesh file needs to be coloured to apply boundary conditions 
+      // properly. Then, the geometry is shifted to match the shape of the heart 
+      // as close as possible to avoid large deformations of cells.
       signals.postprocess_newly_created_triangulation.connect(
           [&, this](Triangulation<dim, spacedim> *tria) {
             // manual coloring
@@ -78,7 +82,8 @@ public:
                   {
                     cell->face(f)->set_boundary_id(2);
                   }
-                  if(cell->face(f)->center()[1] >= 3.0014)
+                  // this value needs to be 3.0014 if the short mesh is used
+                  if(cell->face(f)->center()[1] >= 5.0014) 
                   {
                     cell->face(f)->set_boundary_id(3);
                   }
@@ -91,6 +96,9 @@ public:
             shift_vec[index] = -1.318;
             GridTools::shift(shift_vec, *tria);
           });
+      // In the following signal, the boundary conditions are applied
+      // to all boundary IDs. It is necessary to apply the deformation, 
+      // the vleocity and also the time derivatives of the deformation.
       signals.update_constraint_matrices.connect(
           [&, this](std::vector<std::shared_ptr<dealii::ConstraintMatrix>>
                         &constraints,
@@ -103,9 +111,9 @@ public:
             ComponentMask displacement_mask = fe.component_mask(displacements);
             ComponentMask velocity_mask = fe.component_mask(velocities);
 
-            // in 3D:
-            // displacement_mask = [1 1 1 0 0 0 0]
-            // velocity_mask     = [0 0 0 1 1 1 0]
+            // in 2D:
+            // displacement_mask = [1 1 0 0 0]
+            // velocity_mask     = [0 0 1 1 0]
 
             double timestep = this->get_current_time();
             double dt = this->get_timestep();
@@ -119,11 +127,11 @@ public:
             }
             // set d_dot to zero when the reference geometry is
             // transformed to the heart geometry in the first step.
+            // this is the smarter version of #1 but it doesn't work 
+            // yet.
             if (timestep == dt) {
-              // type LAC::VectorType
               auto &solution_dot = const_cast<typename LAC::VectorType &>(
                   this->get_solution_dot());
-              // std::cout << "size: " << solution_dot.size() << std::endl;
               solution_dot.block(0) = 0;
             }
 
@@ -167,30 +175,32 @@ public:
                       displacement_mask);
             }
             int n_faces = (dim == 2) ? 3 : 2;
-
+            // #1: set velocities and the time derivatice of the deformation
+            // to zero, because the first step from the cylinder to the heart
+            // shape is non physical
             if (timestep < 0.000001)
             {
-              // time derivatives of dirichlet BC for d
+              // time derivatives of dirichlet BC for d (called d_dot)
               for (int i = 0; i < n_faces; ++i) {
                 VectorTools::interpolate_boundary_values(
                     dof, i, ZeroFunction<dim>(2 * dim + 1), constraints_dot,
                     displacement_mask);
               }
-              // time derivatives of dirichlet BC for u
+              // dirichlet BC for u
               for (int i = 0; i < n_faces; ++i) {
                 VectorTools::interpolate_boundary_values(
                     dof, i, ZeroFunction<dim>(2 * dim + 1), *constraints[0],
                     velocity_mask);
               }
             } else {
-              // time derivatives of dirichlet BC for d
+              // time derivatives of dirichlet BC for d (called d_dot)
               for (int j = 0; j < n_faces; ++j) {
                 heart_boundary_values(j, timestep, true);
                 VectorTools::interpolate_boundary_values(
                     dof, j, heart_boundary_values, constraints_dot,
                     displacement_mask);
               }
-              // BC for u
+              // dirichlet BC for u
               for (int j = 0; j < n_faces; ++j) {
                 heart_boundary_values(j, timestep, true);
                 VectorTools::interpolate_boundary_values(
@@ -200,6 +210,9 @@ public:
             }
           });
     } 
+    // the "else" part is used when the heart geometry is turned off, in order to
+    // run the test cases. Some adjustments had to be taken to get the error 
+    // calculation right.
     else {
       // Make sure that velocity boundary conditions are applied on the Eulerian
       // domain.
@@ -271,13 +284,13 @@ public:
             }
           });
     }
-
+    // some arbitrary location to put the getter functions
     signals.begin_make_grid_fe.connect([&, this]() {
       adaptive_preconditioners_on = this->get_adaptive_preconditioners();
       max_iterations_adaptive = this->get_max_iterations_adaptive();
       use_explicit_solutions = this->get_explicit_solution_bool();
     });
-
+    // retrieving information about the solver
     signals.end_solve_jacobian_system.connect([&, this]() {
       double time = this->get_current_time();
       if (time > 0.005 && std::is_same<LAC, LATrilinos>::value)
@@ -285,36 +298,26 @@ public:
       else
         iterations_last_step = 0;
     });
-
-     signals.end_run.connect([&, this]() {
-        mapped_mapping = nullptr;
-      });
+    // destroy shared pointer...
+    signals.end_run.connect([&, this]() {
+      mapped_mapping = nullptr;
+    });
   }
-
-  // void
-  // set_matrix_couplings(std::vector<std::string> &couplings) const;
-
+  // this function was once in the pi-DoMUS class..
+  // it is used to map also the forcing terms on the Eulerian domain.
   virtual void apply_forcing_terms(
       const typename DoFHandler<dim, spacedim>::active_cell_iterator &cell,
       FEValuesCache<dim, spacedim> &scratch,
       std::vector<double> &local_residual) const {
 
-//    auto cache = scratch.get_cache();
-//    if (!cache.have("Mapped FEValuesCache")) {
       auto mapping = MappingQEulerian<dim, typename LAC::VectorType, spacedim>(
               this->get_fe().degree, this->get_dof_handler(), this->get_locally_relevant_solution());
-//      cache.add_copy(mapping, "Mapping");
 
       const QGauss<dim> quadrature(this->get_fe().degree + 1);
       const QGauss<dim - 1> face_quadrature_formula(this->get_fe().degree + 1);
       FEValuesCache<dim, spacedim> mapped_scratch(
           mapping, this->get_fe(), quadrature, this->get_cell_update_flags(),
           face_quadrature_formula, this->get_face_update_flags());
-//      cache.add_copy(newscratch, "Mapped FEValuesCache");
-//    }
-
-//    auto &mapped_scratch =
-//        cache.template get<FEValuesCache<dim, spacedim>>("Mapped FEValuesCache");
 
     unsigned cell_id = cell->material_id();
     auto &forcing_terms = this->get_simulator().forcing_terms;
@@ -364,7 +367,7 @@ private:
   mutable std::shared_ptr<Mapping<dim,spacedim>> mapped_mapping;
 
   // Physical parameter
-  double nu;
+  double nu;  // this should actually be the dynamic viscosity...
   double rho;
 
   mutable unsigned int iterations_last_step;
@@ -393,7 +396,7 @@ private:
   mutable ParsedJacobiPreconditioner jac_M;
 
   /**
-   * Heart boundary values.
+   * Heart boundary values. Data read only once to get as peed up. 
    */
   mutable BoundaryValues<dim> heart_boundary_values;
 };
@@ -437,14 +440,6 @@ void ALENavierStokes<dim, spacedim, LAC>::declare_parameters(
 template <int dim, int spacedim, typename LAC>
 void ALENavierStokes<dim, spacedim, LAC>::parse_parameters_call_back() {}
 
-// template <int dim, int spacedim, typename LAC>
-// void ALENavierStokes<dim,spacedim,LAC>::
-// set_matrix_couplings(std::vector<std::string> &couplings) const
-//{
-//  couplings[0] = "1,0,0; 0,1,1; 0,1,0"; // TODO: Select only not null
-//  entries couplings[1] = "0,0,0; 0,0,0; 0,0,1";
-//}
-
 template <int dim, int spacedim, typename LAC>
 template <typename EnergyType, typename ResidualType>
 void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
@@ -460,6 +455,10 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
   double dummy = 0.0;
 
   this->reinit(et, cell, fe_cache);
+
+  /**
+  * retrieving the different operators applied on functions from the fe_cache.
+  */
 
   // displacement:
   auto &grad_ds =
@@ -487,7 +486,7 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
   // pressure:
   auto &ps = fe_cache.get_values("solution", "p", pressure, et);
 
-  // Jacobian:
+  // Jacobian from the reference to the deformed cell:
   auto &JxW = fe_cache.get_JxW_values();
 
   const unsigned int n_quad_points = us.size();
@@ -506,7 +505,8 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
     const ResidualType &div_d = div_ds[quad];
 
     // deformation gradient, assigned differently due to different
-    // ResidualTypes
+    // ResidualTypes. Workaround to toggle the use of explicit and 
+    // implicit solutions.
     Tensor<2, dim, ResidualType> F;
     if (use_explicit_solutions == true) {
       for (int d = 0; d < dim; ++d)
@@ -526,21 +526,19 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
     // pressure:
     const ResidualType &p = ps[quad];
 
-    // jacobian of ALE transformation
+    // Jacobian of ALE transformation
     auto J_ale = J;
 
     // pressure * identity matrix
     Tensor<2, dim, ResidualType> p_Id;
     for (unsigned int i = 0; i < dim; ++i)
       p_Id[i][i] = p;
-
-    // ResidualType my_rho = rho;
+    // fluid stress tensor
     const Tensor<2, dim, ResidualType> sigma =
         -p_Id + nu * (sym_grad_u * F_inv + (Ft_inv * transpose(sym_grad_u)));
 
     for (unsigned int i = 0; i < residual[0].size(); ++i) {
       // test functions:
-
       // velocity:
       auto u_test = fev[velocity].value(i, quad);
       auto grad_u_test = fev[velocity].gradient(i, quad);
@@ -553,26 +551,24 @@ void ALENavierStokes<dim, spacedim, LAC>::energies_and_residuals(
       auto p_test = fev[pressure].value(i, quad);
 
       residual[1][i] += ((1. / nu) * p * p_test) * JxW[quad];
-
-      // you need to double check this!!
+      // ALE Navier Stokes weak formulation as found almost exactly in 
+      // Wick T. - Solvong Monolithic Fluid-Structure Interaction Problems in 
+      // Arbitrary Lagrangian Eulerian Coordinates with the deal.II Library
       residual[0][i] +=
           (
               // time derivative term
               rho * scalar_product(u_dot * J_ale, u_test)
-
-              + rho * scalar_product(grad_u * (F_inv * (u_old - d_dot)) * J_ale,
-                                     u_test)
-
+              // convection
+              + rho * scalar_product(grad_u * (F_inv * (u_old - d_dot)) * J_ale, u_test)
+              // diffusion
               + scalar_product(J_ale * sigma * Ft_inv, grad_u_test)
-
               // divergence free constriant
               - trace(grad_u * F_inv) * J_ale * p_test
-
               // solve linear elasticity problem
-              // + scalar_product(grad_d, grad_d_test)
               + 1.0 * scalar_product(grad_d, grad_d_test)
+              // mesh correction term, put to zero for better test results 
+              // but not for the heart
               + 10 * (div_d * div_d_test)
-
           ) * JxW[quad];
     }
   }
@@ -605,8 +601,6 @@ void ALENavierStokes<dim, spacedim, LAC>::compute_system_operators(
                                                      fe, dh);
       jac_M.initialize_preconditioner<>(matrices[1]->block(2, 2));
       counter++;
-      // make verbose with pcout and parameter in prm file
-      // std::cout << "precons reinitialized!" << std::endl;
     }
   } else {
     AMG_d.initialize_preconditioner<dim, spacedim>(matrices[0]->block(0, 0), fe,

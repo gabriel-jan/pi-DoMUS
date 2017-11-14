@@ -21,6 +21,20 @@
 
 using namespace dealii;
 
+/**
+* In this class, the data is read completely and stored in
+* a solution vector. A push forward function is provided to
+* retrieve a heart point when inserting  cylinder point.
+* In short:
+* - creating a 2D geometry of the cylinder dimension
+* - applying a finite element system on the mesh, one 
+*   fe per coordinate
+* - interpolate the data points at a fe degraa of 4 
+* - differentiating between a hull point and abottom boundary
+*   point
+*/
+
+
 template <int dim, int spacedim>
 Heart<dim, spacedim>::Heart()
     : fe(FE_Q<dim>(2), spacedim)
@@ -41,13 +55,6 @@ Heart<dim, spacedim>::Heart(bool side)
     run_bottom();
   }
 }
-
-// template <int dim, int spacedim>
-// void Heart<dim,spacedim>::operator ()(unsigned heartstep){
-// set start vector = ...
-// make sure that we operate always on start_vector, startvector+3
-//}
-
 
 template <int dim, int spacedim>
 void Heart<dim, spacedim>::setup_system()

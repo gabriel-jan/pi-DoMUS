@@ -10,32 +10,38 @@ from sympy.parsing.sympy_parser import parse_expr
 
 def main(args=None):
     """The main routine."""
+    # remove all tests before running a new one.
     os.system("rm -rf *-test")
+
 # To add a test you need to adjust 
 #   -testnames
 #   -pre_d
 #   -pre_v
 #   -output
 
-    testnames = ["rp",      #rot patch
+    testnames = ["z",
+                 "rp",      #rot patch
                  "rpt",     #rot patch with time
                  "rs",      #rot sine
                  "rst",     #rot sine with time
                  "sc",      #sine cosine
                  "sct"]     #sine cosine with time
-    pre_d = ["-0.2*y**2*(y/3 - 1/2)", 
+    pre_d = ["0",
+             "-0.2*y**2*(y/3 - 1/2)", 
              "-0.2*t*y**2*(y/3 - 1/2)",
              "0.2*(1/pi)*cos(pi*y)", 
              "0.2*sin(2*pi*t)*(1/pi)*cos(pi*y)",
              "0.06*(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
              "0.06*(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"]
-    pre_v = ["-y**2*(y/3 - 1/2)", 
+    pre_v = ["0",
+             "-y**2*(y/3 - 1/2)", 
              "-t*y**2*(y/3 - 1/2)",
              "(1/pi)*cos(pi*y)", 
              "sin(2*pi*t)*(1/pi)*cos(pi*y)",
              "(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
              "(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"] 
-    output = ["rotating_patch",
+    output = ["zero",
+              "rotating_patch",
               "time_dep_rotating_patch",
               "rotating_sine",
               "time_dep_rotating_sine",
@@ -108,9 +114,10 @@ def main(args=None):
             p = parse_expr(press, local_dict=local_dict)
             pt = p.diff(t)
 
+            # curl operator \nabla \times d
             d = [-pre_d_.diff(y), pre_d_.diff(x)]
             dt = [di.diff(t) for di in d]
-
+            # curl operator \nabla \times v
             v = [-pre_v_.diff(y), pre_v_.diff(x)]
             vt = [vi.diff(t) for vi in v]
 
@@ -118,7 +125,9 @@ def main(args=None):
                 print("\nPerforming "+ output[k] +"-"+ output[i] + " test" + 
                       "\nUsing pattern d, d, u, u, p in \n"+
                       "             (" + str(d[0]) + ", " + str(d[1]) + ", " + str(v[0]) + ", " + str(v[1]) + ", " + str(p)+" )\n")
-    
+            
+            # ALE Navier Stokes formulation to be applied with a manufactured solution as
+            # boundary conditions, initial solution and forcing terms.
             f_d      = [-d[0].diff(x, 2) - d[0].diff(y, 2), -d[1].diff(x, 2) - d[1].diff(y, 2), 0, 0]
             f_navier = [0, 0, v[0].diff(t) + (v[0]-dt[0])*v[0].diff(x) + (v[1]-dt[1])*v[0].diff(y), v[1].diff(t) + (v[0]-dt[0])*v[1].diff(x) + (v[1]-dt[1])*v[1].diff(y)]
             f_stokes = [0, 0, -v[0].diff(x, 2) - v[0].diff(y, 2) + p.diff(x), -v[1].diff(x, 2) - v[1].diff(y, 2) + p.diff(y)]

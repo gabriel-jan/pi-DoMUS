@@ -23,7 +23,6 @@ public:
     this->color = (dim == 2) ? color - 1 : color;
     this->derivative = derivative;
   }
-
   void operator()(int color, double timestep, bool derivative = false) {
     this->color = (dim == 2) ? color - 1 : color;
     this->timestep = timestep;

@@ -17,11 +17,7 @@ def main(args=None):
 #   -pre_v
 #   -output
 
-# TODO: 
-# - running in parallel
-# - fix time dependence problems
-
-    testnames = [#"z",       #trivial solution
+    testnames = ["z",       #trivial solution
                  "p",       #patch
                  "pt",      #patch with time
                  "rp",      #rot patch
@@ -30,25 +26,25 @@ def main(args=None):
                  "rst",     #rot sine with time
                  "sc",      #sine cosine
                  "sct"]     #sine cosine with time
-    pre_d = [#"0",
+    pre_d = ["0",
              "-0.2*((y**2)/2-y)", 
              "-0.2*t*((y**2)/2-y)", 
-             "-0.2*y**2*(y/3 - 1/2)", 
-             "-0.2*t*y**2*(y/3 - 1/2)",
+             "-0.2*y**3/3 + 0.2*y**2/2", 
+             "-0.2*t*y**3/3 + 0.2*y**2/2",
              "0.2*(1/pi)*cos(pi*y)", 
              "0.2*sin(2*pi*t)*(1/pi)*cos(pi*y)",
              "0.06*(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
              "0.06*(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"]
-    pre_v = [#"0",
+    pre_v = ["0",
              "-0.2*((y**2)/2-y)", 
              "-0.2*t*((y**2)/2-y)", 
-             "-0.2*y**2*(y/3 - 1/2)", 
-             "-0.2*t*y**2*(y/3 - 1/2)",
+             "-0.2*y**3/3 + 0.2*y**2/2", 
+             "-0.2*t*y**3/3 + 0.2*y**2/2",
              "0.2*(1/pi)*cos(pi*y)", 
              "0.2*sin(2*pi*t)*(1/pi)*cos(pi*y)",
              "0.06*(1/(2*pi))*sin(2*pi*x)*sin(2*pi*y)", 
              "0.06*(1/(2*pi))*sin(2*pi*t)*sin(2*pi*x)*sin(2*pi*y)"]
-    output = [#"zero",
+    output = ["zero",
               "patch",
               "time_dep_patch",
               "rotating_patch",
@@ -118,9 +114,10 @@ def main(args=None):
             p = parse_expr(press, local_dict=local_dict)
             pt = p.diff(t)
 
+            # curl operator \nabla \times d
             d = [-pre_d_.diff(y), pre_d_.diff(x)]
             dt = [di.diff(t) for di in d]
-
+            # curl operator \nabla \times v
             v = [-pre_v_.diff(y), pre_v_.diff(x)]
             vt = [vi.diff(t) for vi in v]
 
@@ -128,11 +125,13 @@ def main(args=None):
                 print("\nPerforming "+ output[k] +"-"+ output[i] + " test" + 
                       "\nUsing pattern d, d, u, u, p in \n"+
                       "             (" + str(d[0]) + ", " + str(d[1]) + ", " + str(v[0]) + ", " + str(v[1]) + ", " + str(p)+" )\n")
-    
+            
+            # ALE Navier Stokes formulation to be applied with a manufactured solution as
+            # boundary conditions, initial solution and forcing terms.
             f_d      = [-d[0].diff(x, 2) - d[0].diff(y, 2), -d[1].diff(x, 2) - d[1].diff(y, 2), 0, 0]
             f_navier = [0, 0, v[0].diff(t) + (v[0]-dt[0])*v[0].diff(x) + (v[1]-dt[1])*v[0].diff(y), v[1].diff(t) + (v[0]-dt[0])*v[1].diff(x) + (v[1]-dt[1])*v[1].diff(y)]
             f_stokes = [0, 0, -v[0].diff(x, 2) - v[0].diff(y, 2) + p.diff(x), -v[1].diff(x, 2) - v[1].diff(y, 2) + p.diff(y)]
-    
+            
             f_ale = []
             for j in range(len(f_navier)):
                 f_ale += [f_navier[j] + f_stokes[j] + f_d[j] ] 
@@ -168,32 +167,30 @@ def main(args=None):
                     "\nend")
     
             name = testnames[k]+"-"+testnames[i]
-            shutil.copy2('./template.prm', 'ALE_'+ name + '.prm' )
-    
-            prm = open('ALE_'+name+ '.prm','a+')
+
+            #create test directory
+            os.system("mkdir " + name + "-test")
+
+            # create prm file from template
+            shutil.copy2("./template.prm", "ALE_"+ name + ".prm" )
+            # append to prm file
+            prm = open("ALE_"+name+ ".prm",'a+')
             prm.write(v_str.replace("**", "^"))
             prm.close()
+
             if platform == "darwin":
                 os.system("sed -i '' 's/xxx/" + name +"/g' ALE_"+ name + '.prm' )   #output
                 #os.system("sed -i '' 's/yyy/" + name +"/g' ALE_"+ name + '.prm' )   #error
             else:
                 os.system("sed -i 's/xxx/" + name +"/g' ALE_"+ name + '.prm' )  #output
                 #os.system("sed -i 's/yyy/" + name +"/g' ALE_"+ name + '.prm' )  #error
-    
-            #os.system("mpirun -np 4 ../build/heart --prm=ALE_"+ name +".prm")
+            
             if mute:
-                #os.system("../build/heart --prm=ALE_"+ name +".prm --dealii >/dev/null")
-                os.system("mpirun -np 8 ../build/heart --prm=ALE_"+ name +".prm >/dev/null")
+                os.system("../build/heart --prm=ALE_"+ name +".prm --dealii >/dev/null")
+                #os.system("mpirun -np 8 ../build/heart --prm=ALE_"+ name +".prm >/dev/null")
             else:
                 os.system("../build/heart --prm=ALE_"+ name +".prm --dealii")
-                #os.system("mpirun -np 8 ../build/heart --prm=ALE_"+ name +".prm")
-            os.system("mv error.txt errorfiles/error-"+str(k)+"-"+str(i)+".txt")
-    files = glob.glob( 'errorfiles/error*' )
-    files.sort()
-    with open( 'result.txt', 'w' ) as result:
-        for file in files:
-            result.write("\nerror for d: "+output[int(file[17])]+" v: "+output[int(file[19])]+"\n")
-            for line in open( file, 'r' ):
-                result.write( line )   
+                #os.system("mpirun -np 4 ../build/heart --prm=ALE_"+ name +".prm")
+    
 if __name__ == "__main__":
     main()

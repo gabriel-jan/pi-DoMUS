@@ -61,7 +61,7 @@ subsection Error Tables
   set Output error tables      = true
   set Solution names           = d,d,u,u,p
   set Solution names for latex = d,d,u,u,p
-  set Table names              = error
+  set Table names              = xxx-error
   set Write error files        = true
   subsection Table 0
     set Add convergence rates          = true
@@ -73,17 +73,17 @@ subsection Error Tables
 end
 subsection IDA Solver Parameters
   set Absolute error tolerance                      = 1e-5
-  set Final time                                    = 0.06
+  set Final time                                    = 0.03125
   set Ignore algebraic terms for error computations = false
   set Initial condition Newton max iterations       = 5
   set Initial condition Newton parameter            = 0.33
-  set Initial condition type                        = use_y_diff
+  set Initial condition type                        = use_y_dot
   set Initial condition type after restart          = use_y_dot
   set Initial step size                             = 1e-4
   set Initial time                                  = 0
   set Maximum number of nonlinear iterations        = 10
   set Maximum order of BDF                          = 5
-  set Min step size                                 = 1e-5
+  set Min step size                                 = 1e-4
   set Relative error tolerance                      = 1e-4
   set Seconds between each output                   = 0.01
   set Show output of time steps                     = true
@@ -91,9 +91,9 @@ subsection IDA Solver Parameters
 end
 subsection IMEX Parameters
   set Absolute error tolerance                     = 1e-10
-  set Final time                                   = 0.25
+  set Final time                                   = 0.125
   set Initial time                                 = 0.0
-  set Intervals between outputs                    = 5
+  set Intervals between outputs                    = 2
   set Maximum number of inner nonlinear iterations = 15
   set Maximum number of outer nonlinear iterations = 20
   set Method used                                  = fixed_alpha
@@ -101,7 +101,7 @@ subsection IMEX Parameters
   set Number of elements in backtracking sequence  = 5
   set Print useful informations                    = true
   set Relative error tolerance                     = 1e-9
-  set Step size                                    = .03125
+  set Step size                                    = 7.8125e-3
   set Update continuously Jacobian                 = true
   set Use the KINSOL solver                        = true
 end
@@ -115,7 +115,7 @@ subsection KINSOL for IMEX
   set Maximum number of iteration before Jacobian update = 50
   set Maximum number of iterations                       = 100000
   set Step tolerance                                     = 1e-9
-  set Strategy                                           = newton
+  set Strategy                                           = global_newton
   set Tolerance for residuals                            = 1e-9
   set Use internal KINSOL direct solver                  = false
 end
@@ -124,7 +124,7 @@ subsection Output Parameters
   set Incremental run prefix         = 
   set Output format                  = vtu
   set Output partitioning            = false
-  set Problem base name              = /../testing/xxx-test/xxx
+  set Problem base name              = xxx-test/xxx
   set Solution names                 = u
   set Subdivisions                   = 1
 end
@@ -144,13 +144,13 @@ subsection piDoMUS
   ##
   set Adaptive refinement                            = false
   set Enable finer preconditioner                    = false
-  set Initial global refinement                      = 4
+  set Initial global refinement                      = 3
   set Jacobian solver tolerance                      = 1e-10
   set Max iterations                                 = 10000
   set Max iterations finer prec.                     = 0
   set Max tmp vectors                                = 30
   set Max tmp vectors for finer system               = 50
-  set Number of cycles                               = 3
+  set Number of cycles                               = 2
   set Overwrite Newton's iterations                  = true
   set Print some useful informations about processes = true
   set Refine mesh during transient                   = false

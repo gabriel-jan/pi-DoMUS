@@ -7,11 +7,16 @@
 using namespace dealii;
 
 // - - - - -  public functions - - - - -
-
+// vector value is a virtual placehodler function to be overwritten easily
+// It is templated with the dimension but it is not sure that the 3D case is 
+// still working.
 template <int dim>
 void BoundaryValues<dim>::vector_value(const Point<dim> &p,
                                        Vector<double> &values) const
 {
+  // if conditons concerning coordinates are to apply zero 
+  // BC on the tube and the correct ones on the heart.
+  // Pay attention, in 2D colour is colour-1 -> header file
   if (derivative)
       if (p[1]<=3.0014-1.318)
       {
@@ -43,7 +48,8 @@ void BoundaryValues<dim>::vector_value(const Point<dim> &p,
 }
 
 // - - - - -  private functions - - - - -
-
+// rotate a certain point p by an angle "rot"
+// returns also the height and the angle by reference
 template <int dim>
 Point<3> BoundaryValues<dim>::rotate(const Point<3> &p,
                                      double rot,
@@ -70,7 +76,8 @@ Point<3> BoundaryValues<dim>::rotate(const Point<3> &p,
 
   return Point<3>(x, y, z);
 }
-
+// different coordinate systems have been used in the 
+// team. confusion. 
 template <int dim>
 void BoundaryValues<dim>::swap_coord(Point<3> &p) const
 {
@@ -79,7 +86,8 @@ void BoundaryValues<dim>::swap_coord(Point<3> &p) const
   p(0) = p(2);
   p(2) = tmp;
 }
-
+// creating a geometry in one dimension to apply a finite 
+// element and interpolate the steps later.
 template <int dim>
 void BoundaryValues<dim>::setup_system()
 {
@@ -95,6 +103,10 @@ void BoundaryValues<dim>::setup_system()
   DoFRenumbering::downstream(dof_handler, direction, true);
 }
 
+// retrieving the distance between a cylinder point and a heart point.
+// equipping the 2D point with an artificial coordinate to fit 
+// in the mapping function. The different faces are not aligned 
+// correctly because of the data sets, so they are rotated and adjusted.
 template <int dim>
 void BoundaryValues<dim>::get_heartdelta(const Point<dim> point,
                                          Vector<double> &values,
@@ -134,8 +146,6 @@ void BoundaryValues<dim>::get_heartdelta(const Point<dim> point,
   } else if (color == 1) //////////////////////////////// bottom face
   {
     Point<2> two_dim_pnt(p(2), p(1));
-    // std::cout << "point on bottom boundary: (" << p(2) << ", " << p(1) << ")"
-    // << std::endl;
 
     if (dim == 2) {
       rotated_p = rotate(p, rot(color + 1), phi, h);
@@ -157,6 +167,8 @@ void BoundaryValues<dim>::get_heartdelta(const Point<dim> point,
       int index = (i + offset) % 3;
       values(i) = heart_p(index) - p(index);
     }
+    // The <=  0 thing is the reason 
+    // of the colour = colour -1 thing
   } else if (color <= 0) //////////////////////////////// hull
   {
     rotated_p = rotate(p, rot(color + 1), phi, h);
@@ -180,7 +192,8 @@ void BoundaryValues<dim>::get_heartdelta(const Point<dim> point,
     }
   }
 }
-
+// store three consecutive time steps to get an accurate interpolation 
+// with the finite element.
 template <int dim>
 void BoundaryValues<dim>::get_values(const Point<dim> &p,
                                      Vector<double> &values) const
@@ -225,7 +238,8 @@ void BoundaryValues<dim>::get_values(const Point<dim> &p,
     values(i) = wert[0](i);
   }
 }
-
+// calculates the velocity boundary conditions from the displacements 
+// and then interpolates between two different velocity steps.
 template <int dim>
 void BoundaryValues<dim>::get_values_dt(const Point<dim> &p,
                                         Vector<double> &values) const
